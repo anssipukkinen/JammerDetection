@@ -162,6 +162,29 @@ def find_closest_location(timestamp, loc_df, max_diff_ms=2000):
         return row['latitude'], row['longitude'], row['height']
     return None, None, None
 
+def find_closest_agc(timestamp, constellation_type, agc_df, max_diff_ms=2000):
+    """Find the closest AGC record to a given timestamp for a specific constellation."""
+    if agc_df.empty:
+        return None
+    
+    # Filter AGC records for the specific constellation
+    constellation_agc = agc_df[agc_df['constellation_type'] == constellation_type]
+    
+    if constellation_agc.empty:
+        return None
+    
+    # Calculate absolute time differences
+    time_diffs = abs(constellation_agc['timestamp'] - timestamp)
+    min_diff = time_diffs.min()
+    
+    # Check if the minimum time difference exceeds the threshold
+    if min_diff >= max_diff_ms:
+        return None
+        
+    # Get the closest record within threshold
+    closest_idx = time_diffs.idxmin()
+    return constellation_agc.loc[closest_idx, 'agc']
+
 def process_files(agc_file_path, nmea_file_path, loc_file_path, output_file_path):
     """Process AGC, NMEA, and location files and generate merged output."""
     # Create empty DataFrame with correct columns
@@ -172,14 +195,14 @@ def process_files(agc_file_path, nmea_file_path, loc_file_path, output_file_path
     nmea_df = parse_nmea_file(nmea_file_path)
     loc_df = parse_location_file(loc_file_path)
     
-    if agc_df.empty or nmea_df.empty:
-        print("Warning: One or both input files produced empty DataFrames")
+    if nmea_df.empty:
+        print("Warning: NMEA file produced empty DataFrame")
         return empty_df
     
     # Print unique timestamps and constellation types for debugging
-    print("\nUnique AGC timestamps:", agc_df['timestamp'].unique())
+    print("\nUnique AGC timestamps:", agc_df['timestamp'].unique() if not agc_df.empty else "No AGC data")
     print("Unique NMEA timestamps:", nmea_df['timestamp'].unique())
-    print("\nUnique AGC constellation types:", agc_df['constellation_type'].unique())
+    print("\nUnique AGC constellation types:", agc_df['constellation_type'].unique() if not agc_df.empty else "No AGC data")
     print("Unique NMEA constellation types:", nmea_df['constellation_type'].unique())
     
     # First, aggregate SNR values by timestamp and constellation
@@ -188,31 +211,25 @@ def process_files(agc_file_path, nmea_file_path, loc_file_path, output_file_path
         satellite_count=('snr', 'count')
     )
     
-    # For each NMEA record, find the previous matching AGC value
+    # For each NMEA record, find the closest AGC value
     matched_records = []
     for _, nmea_row in snr_agg.iterrows():
-        # Find matching AGC record
-        matching_agc = agc_df[
-            (agc_df['constellation_type'] == nmea_row['constellation_type']) &
-            (agc_df['timestamp'] <= nmea_row['timestamp'])
-        ]
+        # Find closest AGC record (can be before or after the NMEA timestamp)
+        agc_value = find_closest_agc(nmea_row['timestamp'], nmea_row['constellation_type'], agc_df)
         
-        if not matching_agc.empty:
-            # Get the most recent AGC value
-            agc_record = matching_agc.iloc[-1]
-            
-            # Find closest location data
-            lat, lon, height = find_closest_location(nmea_row['timestamp'], loc_df)
-            
-            matched_records.append({
-                'timestamp': nmea_row['timestamp'],  # Use NMEA timestamp as reference
-                'constellation': CONSTELLATION_MAP[nmea_row['constellation_type']],
-                'AGC': agc_record['agc'],
-                'SNR': nmea_row['SNR'],
-                'latitude': lat,
-                'longitude': lon,
-                'height': height
-            })
+        # Find closest location data
+        lat, lon, height = find_closest_location(nmea_row['timestamp'], loc_df)
+        
+        # Always include NMEA record, even if no matching AGC is found
+        matched_records.append({
+            'timestamp': nmea_row['timestamp'],
+            'constellation': CONSTELLATION_MAP[nmea_row['constellation_type']],
+            'AGC': agc_value,  # Can be None if no close match found
+            'SNR': nmea_row['SNR'],
+            'latitude': lat,
+            'longitude': lon,
+            'height': height
+        })
     
     # Create output DataFrame
     output_df = pd.DataFrame(matched_records) if matched_records else empty_df
@@ -246,4 +263,4 @@ def process_files(agc_file_path, nmea_file_path, loc_file_path, output_file_path
 
 if __name__ == "__main__":
     # Process the files
-    process_files('agc.csv', 'gnss_log_2024_09_10_14_21_50.nmea', 'nmea.csv', 'output.csv')
+    process_files('agc.csv', 'gnss_log_2024_09_10_14_21_50.nmea', 'nmea.csv', 'output_all.csv')

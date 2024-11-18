@@ -7,6 +7,7 @@ from data_processing import (
     parse_nmea_file,
     parse_location_file,
     process_files,
+    find_closest_agc,
     CONSTELLATION_MAP,
     NMEA_TO_AGC_TYPE,
     is_valid_snr
@@ -78,6 +79,34 @@ class TestDataProcessing(unittest.TestCase):
         # Check if timestamps are converted to milliseconds
         self.assertTrue(all(isinstance(ts, (int, np.int64)) for ts in df['timestamp']))
 
+    def test_find_closest_agc(self):
+        """Test finding closest AGC record"""
+        # Create sample AGC DataFrame
+        agc_data = {
+            'timestamp': [1000, 2000, 3000],
+            'agc': [30.0, 35.0, 40.0],
+            'constellation_type': [1, 1, 1]  # GPS
+        }
+        agc_df = pd.DataFrame(agc_data)
+        
+        # Test exact match
+        self.assertAlmostEqual(find_closest_agc(2000, 1, agc_df), 35.0)
+        
+        # Test closest match before
+        self.assertAlmostEqual(find_closest_agc(2100, 1, agc_df), 35.0)
+        
+        # Test closest match after
+        self.assertAlmostEqual(find_closest_agc(1900, 1, agc_df), 35.0)
+        
+        # Test no match within threshold (more than 2000ms away)
+        self.assertIsNone(find_closest_agc(5500, 1, agc_df))
+        
+        # Test wrong constellation type
+        self.assertIsNone(find_closest_agc(2000, 3, agc_df))  # GLONASS
+        
+        # Test empty DataFrame
+        self.assertIsNone(find_closest_agc(2000, 1, pd.DataFrame()))
+
     def test_process_files(self):
         """Test complete file processing"""
         # Process the files
@@ -91,12 +120,16 @@ class TestDataProcessing(unittest.TestCase):
         valid_constellations = set(CONSTELLATION_MAP.values())
         self.assertTrue(all(c in valid_constellations for c in output_df['constellation'].unique()))
         
-        # Check if AGC values are present
+        # Check if some AGC values are present (not all need to have matches)
         self.assertTrue(any(pd.notna(output_df['AGC'])))
         
-        # Check if SNR values are valid when present
-        valid_snr = output_df[pd.notna(output_df['SNR'])]['SNR']
-        self.assertTrue(all(is_valid_snr(snr) for snr in valid_snr))
+        # Check if all NMEA records are preserved (all should have valid SNR)
+        self.assertTrue(all(pd.notna(output_df['SNR'])))
+        self.assertTrue(all(is_valid_snr(snr) for snr in output_df['SNR']))
+        
+        # Verify AGC values are within reasonable range when present
+        valid_agc = output_df[pd.notna(output_df['AGC'])]['AGC']
+        self.assertTrue(all(-100 <= agc <= 100 for agc in valid_agc))  # Assuming reasonable AGC range
         
         # Check if coordinates are in valid ranges when present
         if 'latitude' in output_df.columns:
@@ -104,6 +137,9 @@ class TestDataProcessing(unittest.TestCase):
             valid_lon = output_df[pd.notna(output_df['longitude'])]['longitude']
             self.assertTrue(all(-90 <= lat <= 90 for lat in valid_lat))
             self.assertTrue(all(-180 <= lon <= 180 for lon in valid_lon))
+        
+        # Verify timestamps are sorted
+        self.assertTrue(output_df['timestamp'].is_monotonic_increasing)
 
     def test_constellation_mapping(self):
         """Test constellation mapping consistency"""

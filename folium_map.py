@@ -3,9 +3,10 @@ from folium.plugins import TimestampedGeoJson
 import pandas as pd
 import json
 import branca.colormap as cm
+import numpy as np
 
 # Create DataFrame
-df = pd.read_csv('output.csv')
+df = pd.read_csv('output_all.csv')
 
 # Normalize SNR for marker size scaling
 snr_min = df['SNR'].min()
@@ -15,22 +16,38 @@ df['SNR_normalized'] = (df['SNR'] - snr_min) / (snr_max - snr_min)
 # Convert timestamp to ISO format
 df['time'] = pd.to_datetime(df['timestamp'], unit='ms').dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
+# Get min and max AGC values, excluding NaN/None
+agc_min = df['AGC'].dropna().min()
+agc_max = df['AGC'].dropna().max()
+
 # Create a colormap for AGC values
-colormap = cm.LinearColormap(colors=['blue', 'red'], vmin=df['AGC'].min(), vmax=df['AGC'].max(), caption='AGC Value')
+colormap = cm.LinearColormap(
+    colors=['blue', 'red'],
+    vmin=agc_min,
+    vmax=agc_max,
+    caption='AGC Value'
+)
 
 # Create GeoJSON features
 features = []
 for idx, row in df.iterrows():
-    # Create tooltip content
+    # Create tooltip content with conditional AGC formatting
+    agc_text = f"{row['AGC']:.2f}" if pd.notna(row['AGC']) else "No data"
     tooltip_content = (
         f"Time: {row['time']}<br>"
         f"Constellation: {row['constellation']}<br>"
-        f"AGC: {row['AGC']:.2f}<br>"
+        f"AGC: {agc_text}<br>"
         f"SNR: {row['SNR']:.2f}<br>"
         f"Lat: {row['latitude']:.6f}<br>"
         f"Lon: {row['longitude']:.6f}<br>"
         f"Height: {row['height']:.2f}"
     )
+    
+    # Set default color for missing AGC values
+    if pd.isna(row['AGC']):
+        fill_color = 'gray'  # Use gray for missing AGC values
+    else:
+        fill_color = colormap(row['AGC'])
     
     feature = {
         'type': 'Feature',
@@ -42,12 +59,12 @@ for idx, row in df.iterrows():
             'time': row['time'],
             'icon': 'circle',
             'iconstyle': {
-                'fillColor': colormap(row['AGC']),
+                'fillColor': fill_color,
                 'fillOpacity': 0.6,
                 'stroke': 'true',
                 'radius': 5 + row['SNR_normalized'] * 10
             },
-            'style': {'color': colormap(row['AGC'])},
+            'style': {'color': fill_color},
             'tooltip': tooltip_content,
             'permanent': True
         }
@@ -83,10 +100,10 @@ timestamped.add_to(m)
 colormap.add_to(m)
 
 # Save map to HTML
-m.save('animated_map_with_agc_snr_with_tooltips.html')
+m.save('animated_map_with_agc_snr_all_data.html')
 
 # Add custom CSS to the saved file to style tooltips
-with open('animated_map_with_agc_snr_with_tooltips.html', 'r') as file:
+with open('animated_map_with_agc_snr_all_data.html', 'r') as file:
     content = file.read()
 
 css = """
@@ -112,5 +129,5 @@ css = """
 # Insert CSS into head section
 content = content.replace('</head>', f'{css}</head>')
 
-with open('animated_map_with_agc_snr_with_tooltips2.html', 'w') as file:
+with open('animated_map_with_agc_snr_all_data.html', 'w') as file:
     file.write(content)
