@@ -1,0 +1,18 @@
+% program   : RTKLIB ver.2.4.3
+% inp file  : MP1_2024-09-10T1421/gnss_log_2024_09_10_14_21_50.24o
+% inp file  : nav/BRD400DLR_S_20242540000_01D_MN.rnx
+% obs start : 2024/09/10 12:22:09.6 GPST (week2331 217329.6s)
+% obs end   : 2024/09/10 12:44:57.0 GPST (week2331 218697.0s)
+% pos mode  : Single
+% elev mask : 15.0 deg
+% ionos opt : Broadcast
+% tropo opt : Saastamoinen
+% ephemeris : Broadcast
+% navi sys  : GPS Galileo SBAS
+%
+% (lat/lon/height=WGS84/ellipsoidal,Q=1:fix,2:float,3:sbas,4:dgps,5:single,6:ppp,ns=# of satellites)
+%  GPST                  latitude(deg) longitude(deg)  height(m)   Q  ns   sdn(m)   sde(m)   sdu(m)  sdne(m)  sdeu(m)  sdun(m) age(s)  ratio
+2024/09/10 12:22:09.600   69.212355629   15.858570977    59.9833   5  13   2.3585   1.9930   6.1051  -0.4561  -1.6353   1.2946   0.00    0.0
+2024/09/10 12:22:10.600   69.212319905   15.858632589    56.3828   5  16   2.1424   1.7419   5.4180  -0.8410  -1.3061   1.7053   0.00    0.0
+2024/09/10 12:22:11.000   69.212341293   15.858667089    47.9816   5  16   2.1424   1.7419   5.4180  -0.8410  -1.3061   1.7053   0.00    0.0
+2024/09/10 12:22:12.000   69.212358564   15.858633874    54.0080   5  16   2.1424   1.7418   5.4181  -0.8410  -1.3060   1.7053   0.00    0.0

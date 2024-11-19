@@ -6,7 +6,14 @@ import branca.colormap as cm
 import numpy as np
 
 # Create DataFrame
-df = pd.read_csv('output_all.csv')
+df = pd.read_csv('output_all_pos.csv')
+
+# Filter out rows with NaN coordinates
+df_valid = df.dropna(subset=['latitude', 'longitude'])
+
+# Check if we have any valid coordinates
+if len(df_valid) == 0:
+    raise ValueError("No valid coordinates found in the dataset")
 
 # Normalize SNR for marker size scaling
 snr_min = df['SNR'].min()
@@ -31,6 +38,10 @@ colormap = cm.LinearColormap(
 # Create GeoJSON features
 features = []
 for idx, row in df.iterrows():
+    # Skip points with invalid coordinates
+    if pd.isna(row['latitude']) or pd.isna(row['longitude']):
+        continue
+        
     # Create tooltip content with conditional AGC formatting
     agc_text = f"{row['AGC']:.2f}" if pd.notna(row['AGC']) else "No data"
     tooltip_content = (
@@ -77,8 +88,8 @@ geojson = {
     'features': features
 }
 
-# Initialize map
-m = folium.Map(location=[df['latitude'].mean(), df['longitude'].mean()], zoom_start=10)
+# Initialize map with mean of valid coordinates
+m = folium.Map(location=[df_valid['latitude'].mean(), df_valid['longitude'].mean()], zoom_start=10)
 
 # Add TimestampedGeoJson with speed control
 timestamped = TimestampedGeoJson(
@@ -100,10 +111,10 @@ timestamped.add_to(m)
 colormap.add_to(m)
 
 # Save map to HTML
-m.save('animated_map_with_agc_snr_all_data.html')
+m.save('animated_map_with_agc_snr_all_data2.html')
 
 # Add custom CSS to the saved file to style tooltips
-with open('animated_map_with_agc_snr_all_data.html', 'r') as file:
+with open('animated_map_with_agc_snr_all_data2.html', 'r') as file:
     content = file.read()
 
 css = """
@@ -129,5 +140,5 @@ css = """
 # Insert CSS into head section
 content = content.replace('</head>', f'{css}</head>')
 
-with open('animated_map_with_agc_snr_all_data.html', 'w') as file:
+with open('animated_map_with_agc_snr_all_data2.html', 'w') as file:
     file.write(content)
