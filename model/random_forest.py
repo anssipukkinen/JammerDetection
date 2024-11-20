@@ -7,7 +7,9 @@ from sklearn.metrics import classification_report, confusion_matrix
 df = pd.read_csv('data/preprocessed_gnss_data.csv', delimiter=';')
 print(df.head())
 # Separate timestamp, lat and long
-df = df.drop(columns=['timestamp', 'latitude', 'longitude'])
+#df = df.drop(columns=['timestamp', 'latitude', 'longitude'])
+df = df.drop(columns=['timestamp', 'num_satellites', 'height', 'latitude', 'longitude'])
+df = df.drop(columns=['constellation_GPS', 'constellation_Galileo', 'constellation_QZSS'])
 
 # Separate features and target variable
 X = df.drop('class', axis=1)
@@ -24,11 +26,12 @@ rf_classifier.fit(X_train, y_train)
 y_pred = rf_classifier.predict(X_test)
 
 # Evaluate the model
-cm = confusion_matrix(y_test, y_pred)
-print('Confusion Matrix:\n', cm)
 
 report = classification_report(y_test, y_pred)
 print('Classification Report:\n', report)
+
+cm = confusion_matrix(y_test, y_pred)
+print('Confusion Matrix:\n', cm)
 
 feature_importances = pd.Series(rf_classifier.feature_importances_, index=X.columns)
 feature_importances.sort_values(ascending=False, inplace=True)
