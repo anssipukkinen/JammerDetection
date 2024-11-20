@@ -32,8 +32,8 @@ pip install numpy pandas scikit-learn folium
 ## Usage
 
 1. Place your GNSS log files in the `data/source/` directory
-2. Merge source data files
-3. Visualize results:
+2. Merge source data files with `data_processing_pos.py`
+3. Visualize results by creating html map file: 
 ```bash
 python visualisation/folium_map.py
 ```
