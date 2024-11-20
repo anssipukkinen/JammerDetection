@@ -33,21 +33,21 @@ pip install numpy pandas scikit-learn folium
 
 1. Place your GNSS log files in the `data/source/` directory
 2. Merge source data files with `data_processing_pos.py`
-21. Run data merging tests
+3. Run data merging tests
 ```bash
 PYTHONPATH=. python test/test_data_processing_pos.py -v
 ```
-3. Visualize results by creating html map file: 
+4. Visualize results by creating html map file: 
 ```bash
 python visualisation/folium_map.py
 ```
-31. Open file `animated_map_with_agc_snr_all_data2.html` in browser (tested with Chrome)
-4. Label output data file with classes (e.g. in Excel) or use pre-labelled data file (`manual_data_with_classes.csv`)
-5. Preprocess the data:
+5. Open file `animated_map_with_agc_snr_all_data2.html` in browser (tested with Chrome)
+6. Label output data file with classes (e.g. in Excel) or use pre-labelled data file (`manual_data_with_classes.csv`)
+7. Preprocess the data:
 ```bash
 python data/pre-processor.py
 ```
-6. Run the jammer detection model:
+8. Run the jammer detection model:
 ```bash
 python model/random_forest.py
 ```
