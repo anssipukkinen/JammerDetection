@@ -5,14 +5,14 @@ from sklearn.metrics import classification_report, confusion_matrix
 
 # Load the preprocessed dataset
 df = pd.read_csv('preprocessed_gnss_data.csv', delimiter=';')
-
+print(df.head())
 # Separate timestamp, lat and long
 df = df.drop(columns=['timestamp', 'latitude', 'longitude'])
 
 # Separate features and target variable
 X = df.drop('class', axis=1)
 y = df['class']
-
+print(X.head())
 # Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
 

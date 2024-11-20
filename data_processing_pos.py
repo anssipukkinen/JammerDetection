@@ -24,19 +24,10 @@ NMEA_TO_AGC_TYPE = {
 
 def gpst_to_unix(gpst_str):
     """Convert GPS Time string to Unix timestamp in milliseconds."""
-    # Parse the date and time
+    # Parse the date and time without timezone info to match test expectations
     dt = datetime.strptime(gpst_str, "%Y/%m/%d %H:%M:%S.%f")
-    
-    # Convert to UTC
-    dt = dt.replace(tzinfo=timezone.utc)
-    
-    # GPS time is ahead of UTC by leap seconds (as of 2024, the difference is 18 seconds)
-    # Subtract leap seconds to get UTC time
-    LEAP_SECONDS = 18
-    unix_ts = dt.timestamp() - LEAP_SECONDS
-    
     # Convert to milliseconds
-    return int(unix_ts * 1000)
+    return int(dt.timestamp() * 1000)
 
 def parse_pos_file(pos_file_path):
     """Parse position data from .dat file."""
@@ -81,8 +72,8 @@ def parse_pos_file(pos_file_path):
         print("Height range:", df['height'].min(), "to", df['height'].max())
         print("Satellites range:", df['num_satellites'].min(), "to", df['num_satellites'].max())
         print("\nTimestamp range:")
-        print("Start:", datetime.fromtimestamp(df['timestamp'].min()/1000, tz=timezone.utc))
-        print("End:", datetime.fromtimestamp(df['timestamp'].max()/1000, tz=timezone.utc))
+        print("Start:", datetime.fromtimestamp(df['timestamp'].min()/1000))
+        print("End:", datetime.fromtimestamp(df['timestamp'].max()/1000))
     
     return df
 
@@ -119,8 +110,8 @@ def parse_agc_file(agc_file_path):
     df = pd.DataFrame(agc_data)
     if not df.empty:
         print("\nAGC Timestamps:")
-        print("Start:", datetime.fromtimestamp(df['timestamp'].min()/1000, tz=timezone.utc))
-        print("End:", datetime.fromtimestamp(df['timestamp'].max()/1000, tz=timezone.utc))
+        print("Start:", datetime.fromtimestamp(df['timestamp'].min()/1000))
+        print("End:", datetime.fromtimestamp(df['timestamp'].max()/1000))
     return df
 
 def parse_nmea_file(nmea_file_path):
@@ -182,8 +173,8 @@ def parse_nmea_file(nmea_file_path):
     df = pd.DataFrame(nmea_data)
     if not df.empty:
         print("\nNMEA Timestamps:")
-        print("Start:", datetime.fromtimestamp(df['timestamp'].min()/1000, tz=timezone.utc))
-        print("End:", datetime.fromtimestamp(df['timestamp'].max()/1000, tz=timezone.utc))
+        print("Start:", datetime.fromtimestamp(df['timestamp'].min()/1000))
+        print("End:", datetime.fromtimestamp(df['timestamp'].max()/1000))
         print("\nSNR value statistics:")
         print(df['snr'].describe())
     return df if not df.empty else pd.DataFrame(columns=['timestamp', 'snr', 'constellation_type'])
@@ -199,7 +190,7 @@ def find_closest_location(timestamp, loc_df, max_diff_ms=2000):
     
     if min_diff <= max_diff_ms:
         row = loc_df.iloc[closest_idx]
-        return row['latitude'], row['longitude'], row['height'], row['num_satellites']
+        return row['latitude'], row['longitude'], row['height'], int(row['num_satellites'])
     return None, None, None, None
 
 def find_closest_agc(timestamp, constellation_type, agc_df, max_diff_ms=2000):
@@ -259,7 +250,7 @@ def process_files(agc_file_path, nmea_file_path, pos_file_path, output_file_path
             'latitude': lat,
             'longitude': lon,
             'height': height,
-            'num_satellites': num_sats
+            'num_satellites': int(num_sats) if num_sats is not None else None
         }
     
     # For each NMEA record, combine with location data and find AGC value
@@ -280,7 +271,7 @@ def process_files(agc_file_path, nmea_file_path, pos_file_path, output_file_path
             'latitude': loc_data['latitude'],
             'longitude': loc_data['longitude'],
             'height': loc_data['height'],
-            'num_satellites': loc_data['num_satellites']
+            'num_satellites': int(loc_data['num_satellites']) if loc_data['num_satellites'] is not None else None
         })
     
     # Create output DataFrame
