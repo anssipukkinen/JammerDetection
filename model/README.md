@@ -226,11 +226,7 @@ weighted avg       0.93      0.93      0.93      1338
 
 ## Support Vector Machine (SVM)
 
-SVM implementation was attempted but failed due to NaN values in the dataset. The error message suggests:
-
-1. Consider using sklearn.ensemble.HistGradientBoostingClassifier/Regressor which handles NaN values natively
-2. Preprocess the data using an imputer transformer
-3. Drop samples with missing values
+SVM implementation was attempted but failed due to NaN values in the dataset. 
 
 Error details:
 ```
