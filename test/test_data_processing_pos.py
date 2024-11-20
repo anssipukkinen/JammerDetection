@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 import pandas as pd
 import numpy as np
-from data.data_processing_pos_orig import (
+from data.data_processing_pos import (
     parse_agc_file,
     parse_nmea_file,
     parse_pos_file,

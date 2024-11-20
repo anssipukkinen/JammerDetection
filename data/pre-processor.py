@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 # Load the dataset
-df = pd.read_csv('data/data.csv', delimiter=';')
+df = pd.read_csv('data/manual_data_with_classes.csv', delimiter=';')
 
 # Remove records for the BeiDou constellation
 df = df[df['constellation'] != 'BeiDou']
