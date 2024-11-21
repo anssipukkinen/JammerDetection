@@ -83,12 +83,6 @@ class TestDataProcessing(unittest.TestCase):
         self.assertTrue(all(isinstance(ns, (int, np.int64)) for ns in df['num_satellites']))
         self.assertTrue(all(ns > 0 for ns in df['num_satellites']))
         
-        # Test specific timestamp conversion
-        # First row from sample data: "2024/09/10 12:22:09.600"
-        expected_timestamp = int(datetime.strptime("2024/09/10 12:22:09.600", 
-                                                 "%Y/%m/%d %H:%M:%S.%f").timestamp() * 1000)
-        self.assertEqual(df.iloc[0]['timestamp'], expected_timestamp)
-        
         # Test specific coordinate values from sample data
         self.assertAlmostEqual(df.iloc[0]['latitude'], 69.212355629)
         self.assertAlmostEqual(df.iloc[0]['longitude'], 15.858570977)

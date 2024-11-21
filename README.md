@@ -33,6 +33,9 @@ pip install numpy pandas scikit-learn folium
 
 1. Place your GNSS log files in the `data/source/` directory
 2. Merge source data files with `data_processing_pos.py`
+```bash
+PYTHONPATH=. python data/data_processing_pos.py -v
+```
 3. Run data merging tests
 ```bash
 PYTHONPATH=. python test/test_data_processing_pos.py -v
