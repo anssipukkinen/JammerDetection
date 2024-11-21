@@ -39,6 +39,13 @@ def plot_constellation_attribute(file_path, attribute):
     plt.ylabel(attribute)
     plt.legend()
     
+    # Set y-axis limits to ±500m if plotting height
+    if attribute.lower() == 'height':
+        # Get the mean height
+        mean_height = df[attribute].mean()
+        # Set limits to mean ±500m
+        plt.ylim(mean_height - 500, mean_height + 500)
+    
     # Rotate x-axis labels for better readability
     plt.xticks(rotation=45)
     
@@ -50,5 +57,5 @@ def plot_constellation_attribute(file_path, attribute):
 
 if __name__ == "__main__":
     # Example usage
-    file_path = "data/output_beidou.csv"
-    plot_constellation_attribute(file_path, "SNR")
+    file_path = "data/output_gps.csv"
+    plot_constellation_attribute(file_path, "num_satellites")

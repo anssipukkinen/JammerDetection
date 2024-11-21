@@ -172,25 +172,25 @@ weighted avg       0.99      0.99      0.99      1338
 ```
               precision    recall  f1-score   support
 
-  legitimate       0.96      0.97      0.96       674
-      jammed       0.90      0.87      0.89       218
+  legitimate       0.95      0.97      0.96       1011
+      jammed       0.89      0.85      0.87       327
 
-    accuracy                           0.95       892
-   macro avg       0.93      0.92      0.92       892
-weighted avg       0.94      0.95      0.94       892
+    accuracy                           0.95       1338
+   macro avg       0.92      0.97      0.91       1338
+weighted avg       0.94      0.94      0.94       1338
 ```
 
 #### Confusion Matrix
 ```
-[[654  20]
- [ 29 189]]
+[[976  35]
+ [ 49 278]]
 ```
 
 #### Feature Importance
 | Feature | Importance |
 |---------|------------|
-| AGC     | 0.624583   |
-| SNR     | 0.375417   |
+| AGC     | 0.613678   |
+| SNR     | 0.386322   |
 
 ---
 

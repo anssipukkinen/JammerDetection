@@ -9,9 +9,10 @@ df = pd.read_csv('data/preprocessed_gnss_data.csv', delimiter=';')
 print(df.head())
 
 # Drop columns (leaves only AGC and SNR)
-df = df.drop(columns=['timestamp', 'num_satellites', 'height', 'latitude', 'longitude'])
+#df = df.drop(columns=['timestamp', 'num_satellites', 'height', 'latitude', 'longitude'])
 df = df.drop(columns=['constellation_GPS', 'constellation_Galileo', 'constellation_QZSS'])
 #df = df.drop(columns=['num_satellites', 'height','latitude', 'longitude'])
+df = df.drop(columns=['num_satellites','height','timestamp', 'latitude', 'longitude'])
 
 # Encode the 'class' column to binary values
 df['class'] = df['class'].map({'legitimate': 0, 'jammed': 1})

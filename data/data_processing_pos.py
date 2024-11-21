@@ -135,11 +135,12 @@ def parse_nmea_file(nmea_file_path):
             if len(parts) < 2:
                 continue
                 
-            sentence = parts[1]
+            # Get the NMEA sentence (skip "NMEA," prefix)
+            sentence = parts[1][1:]  # Skip the $ as well
             
             # Handle GSV sentences for SNR data
             if 'GSV' in sentence:
-                constellation_prefix = sentence[1:3]  # Skip the $ and take next two chars
+                constellation_prefix = sentence[0:2]  # Take first two chars (GP, GA, etc.)
                 if constellation_prefix not in NMEA_TO_AGC_TYPE:
                     continue
                     
@@ -147,25 +148,30 @@ def parse_nmea_file(nmea_file_path):
                 
                 # Process satellite information (4 satellites per sentence)
                 # Format: $--GSV,total_msgs,msg_num,total_sats,sat_info(4 sets of: PRN,elevation,azimuth,SNR)
-                for i in range(4, len(parts)-4, 4):
+                # Skip the header fields (NMEA,$GPGSV,total,msg_num,total_sats)
+                # First satellite block starts at index 5
+                start_idx = 5
+                while start_idx + 3 < len(parts) - 1:  # -1 to exclude timestamp
                     try:
-                        if i+3 < len(parts):
-                            snr_str = parts[i+3].split('*')[0]  # Remove checksum if present
-                            if snr_str and snr_str != '':
-                                try:
-                                    snr = int(snr_str)
-                                    if is_valid_snr(snr):
-                                        nmea_data.append({
-                                            'timestamp': current_timestamp,
-                                            'snr': snr,
-                                            'constellation_type': constellation_type
-                                        })
-                                    else:
-                                        invalid_snr_count += 1
-                                except ValueError:
+                        # Each satellite block is 4 fields: PRN, elevation, azimuth, SNR
+                        # SNR is the last field in the block
+                        snr_str = parts[start_idx + 3].split('*')[0]  # Remove checksum if present
+                        if snr_str and snr_str != '':
+                            try:
+                                snr = int(snr_str)
+                                if is_valid_snr(snr):
+                                    nmea_data.append({
+                                        'timestamp': current_timestamp,
+                                        'snr': snr,
+                                        'constellation_type': constellation_type
+                                    })
+                                else:
                                     invalid_snr_count += 1
+                            except ValueError:
+                                invalid_snr_count += 1
                     except (ValueError, IndexError):
-                        continue
+                        pass
+                    start_idx += 4  # Move to next satellite block
     
     if invalid_snr_count > 0:
         print(f"Warning: Filtered out {invalid_snr_count} invalid SNR values")
