@@ -9,7 +9,6 @@ print(df.head())
 # Separate timestamp, lat and long
 #df = df.drop(columns=['timestamp', 'latitude', 'longitude'])
 df = df.drop(columns=['timestamp', 'num_satellites', 'height', 'latitude', 'longitude'])
-df = df.drop(columns=['constellation_GPS', 'constellation_Galileo', 'constellation_QZSS'])
 
 # Separate features and target variable
 X = df.drop('class', axis=1)

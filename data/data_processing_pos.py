@@ -18,8 +18,7 @@ NMEA_TO_AGC_TYPE = {
     'GL': 3,  # GLONASS
     'QZ': 5,  # QZSS
     'GA': 6,  # Galileo
-    'BD': 7,  # BeiDou
-    'GB': 7   # Alternative BeiDou prefix
+    'BD': 7  # BeiDou
 }
 
 def gpst_to_unix(gpst_str):
